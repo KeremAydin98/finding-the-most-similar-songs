@@ -3,10 +3,10 @@ Paths
 """
 
 # Lyrics csv data path
-lyric_data_path = ".Data/lyrics.csv"
+lyric_data_path = "./Data/lyrics-data.csv"
 
 # All lyrics text path
-lyric_text_path = ".Data/all_lyrics.txt"
+lyric_text_path = "./Data/all_lyrics.txt"
 
 
 """
@@ -20,3 +20,5 @@ num_ns = 4
 
 BATCH_SIZE = 1024
 BUFFER_SIZE = 10000
+
+EMBEDDING_SIZE = 128

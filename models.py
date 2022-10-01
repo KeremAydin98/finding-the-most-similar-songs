@@ -1,4 +1,5 @@
 import tensorflow as tf
+
 class Word2Vec(tf.keras.Model):
 
     def __init__(self, vocab_size, embedding_dim, num_ns):
