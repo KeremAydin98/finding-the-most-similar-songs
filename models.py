@@ -1,4 +1,6 @@
+import sklearn
 import tensorflow as tf
+
 
 class Word2Vec(tf.keras.Model):
 
@@ -31,6 +33,7 @@ class Word2Vec(tf.keras.Model):
 
         return dots
 
+
 class BagOfWords(tf.keras.model):
 
     def __init__(self):
@@ -41,4 +44,20 @@ class BagOfWords(tf.keras.model):
 
         self.tokenizer.fit_on_texts(text)
 
-        return self.tokenizer.texts_to_matrix(text, mode="count")
+        return list(self.tokenizer.word_index.keys()), self.tokenizer.texts_to_matrix(text, mode="count")
+
+
+class TfIdf(tf.keras.model):
+
+    def __init__(self):
+
+        self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
+
+    def call(self, text):
+
+        self.vectorizer.fit(text)
+
+
+        return self.vectorizer
+
+
