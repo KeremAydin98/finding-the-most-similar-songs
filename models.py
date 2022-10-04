@@ -30,3 +30,15 @@ class Word2Vec(tf.keras.Model):
         dots = tf.einsum('be,bce->bc', word_emb, context_emb)
 
         return dots
+
+class BagOfWords(tf.keras.model):
+
+    def __init__(self):
+
+        self.tokenizer = tf.keras.preprocessing.text.Tokenizer()
+
+    def call(self, text):
+
+        self.tokenizer.fit_on_texts(text)
+
+        return self.tokenizer.texts_to_matrix(text, mode="count")
