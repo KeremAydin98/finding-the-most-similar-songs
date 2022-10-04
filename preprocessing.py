@@ -17,7 +17,7 @@ class Preprocessing():
         df = df.drop("language", axis=1)
 
         with open(lyric_text_path, 'w', encoding="UTF-8") as f:
-            for i in range(len(df)):
+            for i in range(len(df) // 10):
                 f.write(str(df["Lyric"].iloc[i]))
                 f.write('\n')
 
@@ -29,18 +29,15 @@ class Preprocessing():
         self.sequence_length = sequence_length
 
         # Text Vectorization
-        vectorize_layer = tf.keras.layers.TextVectorization(max_tokens=self.vocab_size,
+        self.vectorize_layer = tf.keras.layers.TextVectorization(max_tokens=self.vocab_size,
                                                             output_mode='int',
                                                             output_sequence_length=self.sequence_length)
 
         # Adapting to the data set
-        vectorize_layer.adapt(text_ds.batch(1024))
-
-        # A list of vocabulary tokens sorted by their frequency
-        self.inverse_vocab = vectorize_layer.get_vocabulary()
+        self.vectorize_layer.adapt(text_ds.batch(1024))
 
         # Vectorization of the data in text_ds
-        self.text_vector_ds = text_ds.batch(1024).prefetch(tf.data.AUTOTUNE).map(vectorize_layer).unbatch()
+        self.text_vector_ds = text_ds.batch(1024).prefetch(tf.data.AUTOTUNE).map(self.vectorize_layer).unbatch()
 
         # Turns the elements into numpy arrays
         self.sequences = list(self.text_vector_ds.as_numpy_iterator())
