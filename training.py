@@ -1,3 +1,4 @@
+import models
 from preprocessing import Preprocessing
 import config, io
 import numpy as np
@@ -14,6 +15,29 @@ df = df_all.loc[:, df_all.columns.intersection(['Lyric','SName','language'])]
 # Filter only English songs
 df = df[df["language"] == "en"]
 df = df.drop("language", axis=1)
+
+"""
+1. Bag of words
+"""
+
+bow = models.BagOfWords()
+
+songs_bow = []
+
+for i in range(len(df)):
+
+    keys, vectors = bow(df["Lyric"][i])
+
+    songs_bow.append((keys,vectors))
+
+"""
+2. Tf-idf
+"""
+
+
+"""
+3. Word2Vec
+"""
 
 preprocessing = Preprocessing(df, config.lyric_text_path, config.vocab_size, config.sequence_length)
 
