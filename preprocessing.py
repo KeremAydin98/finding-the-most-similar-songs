@@ -2,19 +2,10 @@ import pandas as pd
 import tensorflow as tf
 import tqdm
 
+
 class Preprocessing():
 
-    def __init__(self, lyric_data_path,lyric_text_path, vocab_size, sequence_length):
-
-        # Reading the data
-        df_all = pd.read_csv(lyric_data_path)
-
-        # Drop all the columns except Lyrics and Song Name
-        df = df_all.loc[:, df_all.columns.intersection(['Lyric','SName','language'])]
-
-        # Filter only English songs
-        df = df[df["language"] == "en"]
-        df = df.drop("language", axis=1)
+    def __init__(self, df, lyric_text_path, vocab_size, sequence_length):
 
         with open(lyric_text_path, 'w', encoding="UTF-8") as f:
             for i in range(len(df) // 10):
@@ -30,8 +21,8 @@ class Preprocessing():
 
         # Text Vectorization
         self.vectorize_layer = tf.keras.layers.TextVectorization(max_tokens=self.vocab_size,
-                                                            output_mode='int',
-                                                            output_sequence_length=self.sequence_length)
+                                                                output_mode='int',
+                                                                output_sequence_length=self.sequence_length)
 
         # Adapting to the data set
         self.vectorize_layer.adapt(text_ds.batch(1024))

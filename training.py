@@ -1,11 +1,21 @@
 from preprocessing import Preprocessing
-import config
+import config, io
 import numpy as np
 import tensorflow as tf
 from models import Word2Vec
-import io
+import pandas as pd
 
-preprocessing = Preprocessing(config.lyric_data_path,config.lyric_text_path, config.vocab_size, config.sequence_length)
+# Reading the data
+df_all = pd.read_csv(config.lyric_data_path)
+
+# Drop all the columns except Lyrics and Song Name
+df = df_all.loc[:, df_all.columns.intersection(['Lyric','SName','language'])]
+
+# Filter only English songs
+df = df[df["language"] == "en"]
+df = df.drop("language", axis=1)
+
+preprocessing = Preprocessing(df, config.lyric_text_path, config.vocab_size, config.sequence_length)
 
 # Generating training data
 targets, contexts, labels = preprocessing.generating_training_data(sequences=preprocessing.sequences,
@@ -45,3 +55,4 @@ for index, word in enumerate(vocab):
 
 out_v.close()
 out_m.close()
+

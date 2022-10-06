@@ -35,7 +35,11 @@ class Word2Vec(tf.keras.Model):
 
 
 class BagOfWords(tf.keras.model):
-
+    """
+    Bag-of-words representation for the document(for us song). This representation return the number of each word in a
+    certain document. In other words, it is a statistical approach to similarity, therefore it has no information on the
+    position of the words or their context.
+    """
     def __init__(self):
 
         self.tokenizer = tf.keras.preprocessing.text.Tokenizer()
@@ -48,6 +52,16 @@ class BagOfWords(tf.keras.model):
 
 
 class TfIdf(tf.keras.model):
+    """
+    TF-idf uses the frequency of the words according to two values: tf and idf. TF is the abbreviation for term
+    frequency, and it is calculated with the division of number of repetitions of word in a document by number of words
+    in a document. IDF stands for inverse document frequency, and it is calculated with the log of number of documents
+    divided by the number of documents containing the word.
+
+    TF =  (Number of repetitions of word in a document) / (# of words in a document)
+
+    IDF = Log[ (Number of documents) / (# of words in a document)]
+    """
 
     def __init__(self):
 
@@ -56,7 +70,6 @@ class TfIdf(tf.keras.model):
     def call(self, text):
 
         self.vectorizer.fit(text)
-
 
         return self.vectorizer
 
