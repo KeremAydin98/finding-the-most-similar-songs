@@ -1,10 +1,12 @@
-import sklearn
+import string
+import numpy as np
 import tensorflow as tf
 
 
 class Word2Vec(tf.keras.Model):
     """
-    Word2Vec is just another technique to train word embeddings.
+    Word2Vec is just another technique to train word embeddings. We are going to use skip gram method, therefore we will
+    train the word embeddings by predicting context from the target word.
     """
     def __init__(self, vocab_size, embedding_dim, num_ns):
 
@@ -65,14 +67,88 @@ class TfIdf(tf.keras.model):
     IDF = Log[ (Number of documents) / (# of words in a document)]
     """
 
-    def __init__(self):
+    def __init__(self, docList):
 
-        self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
+        """
+        Computes tf values for each document
 
-    def call(self, text):
+        """
 
-        self.vectorizer.fit(text)
+        self.tfList = []
 
-        return self.vectorizer
+        for doc in docList:
+
+            # Remove punctuation
+            doc = doc.translate(str.maketrans("","", string.punctuation))
+
+            # Split on whitespaces
+            s_doc = doc.split()
+
+            # Form a dictionary with the words in the document
+            s_dict = dict.fromkeys(s_doc, 0)
+
+            # Number of words in the document
+            n_of_words = len(s_doc)
+
+            # Counting the number of each word
+            for word in s_doc:
+
+                s_dict[word] += 1
+
+            # Divide the counts of words by the number of words in the document
+            s_dict.update((x, y / n_of_words) for x, y in s_dict.items())
+
+            self.tfList.append(s_dict)
+
+    def call(self, docList):
+
+        """
+        Now we will calculate idf and finally tf-idf
+        """
+
+        # Number of documents
+        n_doc = len(docList)
+
+        """
+        1. Calculating IDF
+        """
+
+        IDF_list = []
+
+        for i in range(len(docList)):
+
+            # bag of words representation
+            BOW = dict.fromkeys(docList[i],0)
+
+            for word, val in BOW.items():
+
+                BOW[word] = np.log10(n_doc / (val + 1))
+
+            IDF_list.append(BOW)
+
+        """
+        2. Calculating TF-IDF
+        """
+        final_doc_dict = {}
+        final_doc_list = []
+
+        for i,doc in enumerate(docList):
+            final_doc = {}
+
+            for word in doc:
+
+                final_doc[word] = self.tfList[i][word] * IDF_list[i][word]
+
+            final_doc_list.append(final_doc)
+
+        return final_doc_dict(final_doc_list)
+
+
+
+
+
+
+
+
 
 
