@@ -38,7 +38,7 @@ class Word2Vec(tf.keras.Model):
         return dots
 
 
-class BagOfWords(tf.keras.model):
+class BagOfWords(tf.keras.Model):
     """
     Bag-of-words representation for the document(for us song). This representation return the number of each word in a
     certain document. In other words, it is a statistical approach to similarity, therefore it has no information on the
@@ -48,14 +48,14 @@ class BagOfWords(tf.keras.model):
 
         self.tokenizer = tf.keras.preprocessing.text.Tokenizer()
 
-    def call(self, text):
+    def call(self, doc):
 
-        self.tokenizer.fit_on_texts(text)
+        self.tokenizer.fit_on_texts(doc)
 
-        return list(self.tokenizer.word_index.keys()), self.tokenizer.texts_to_matrix(text, mode="count")
+        return list(self.tokenizer.word_index.keys()), self.tokenizer.texts_to_matrix(doc, mode="count")
 
 
-class TfIdf(tf.keras.model):
+class TfIdf(tf.keras.Model):
     """
     TF-idf uses the frequency of the words according to two values: tf and idf. TF is the abbreviation for term
     frequency, and it is calculated with the division of number of repetitions of word in a document by number of words
@@ -67,19 +67,25 @@ class TfIdf(tf.keras.model):
     IDF = Log[ (Number of documents) / (# of words in a document)]
     """
 
-    def __init__(self, docList):
+    def __init__(self):
+
+        super().__init__()
+
+        self.tfList = []
+        self.IDF_list = []
+        self.final_doc_dict = {}
+
+    def call(self, docList):
 
         """
         Computes tf values for each document
 
         """
 
-        self.tfList = []
-
         for doc in docList:
 
             # Remove punctuation
-            doc = doc.translate(str.maketrans("","", string.punctuation))
+            doc = doc.translate(str.maketrans("", "", string.punctuation))
 
             # Split on whitespaces
             s_doc = doc.split()
@@ -92,15 +98,12 @@ class TfIdf(tf.keras.model):
 
             # Counting the number of each word
             for word in s_doc:
-
                 s_dict[word] += 1
 
             # Divide the counts of words by the number of words in the document
             s_dict.update((x, y / n_of_words) for x, y in s_dict.items())
 
             self.tfList.append(s_dict)
-
-    def call(self, docList):
 
         """
         Now we will calculate idf and finally tf-idf
@@ -113,35 +116,31 @@ class TfIdf(tf.keras.model):
         1. Calculating IDF
         """
 
-        IDF_list = []
-
         for i in range(len(docList)):
 
             # bag of words representation
-            BOW = dict.fromkeys(docList[i],0)
+            BOW = dict.fromkeys(docList[i], 0)
 
             for word, val in BOW.items():
-
                 BOW[word] = np.log10(n_doc / (val + 1))
 
-            IDF_list.append(BOW)
+            self.IDF_list.append(BOW)
 
         """
         2. Calculating TF-IDF
         """
-        final_doc_dict = {}
+
         final_doc_list = []
 
-        for i,doc in enumerate(docList):
+        for i, doc in enumerate(docList):
             final_doc = {}
 
             for word in doc:
-
-                final_doc[word] = self.tfList[i][word] * IDF_list[i][word]
+                final_doc[word] = self.tfList[i][word] * self.IDF_list[i][word]
 
             final_doc_list.append(final_doc)
 
-        return final_doc_dict(final_doc_list)
+        return self.final_doc_dict(final_doc_list)
 
 
 
