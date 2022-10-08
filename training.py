@@ -1,9 +1,8 @@
-import models
+import models, config
 from preprocessing import Preprocessing
-import config, io
+import io
 import numpy as np
 import tensorflow as tf
-from models import Word2Vec
 import pandas as pd
 
 # Reading the data
@@ -34,6 +33,11 @@ for i in range(len(df)):
 2. Tf-idf
 """
 
+doc_list = list(df["Lyric"])
+
+tf_idf = models.TfIdf()
+
+df_tfidf = pd.DataFrame(tf_idf(doc_list))
 
 """
 3. Word2Vec
@@ -56,7 +60,7 @@ dataset = dataset.shuffle(config.BUFFER_SIZE).batch(config.BATCH_SIZE,drop_remai
 dataset = dataset.cache().prefetch(tf.data.AUTOTUNE)
 
 # Initialize word2vec model
-word2vec = Word2Vec(config.vocab_size, config.EMBEDDING_SIZE)
+word2vec = models.Word2Vec(config.vocab_size, config.EMBEDDING_SIZE)
 
 word2vec.compile(optimizer=tf.keras.optimizers.Adam(),
                  loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),

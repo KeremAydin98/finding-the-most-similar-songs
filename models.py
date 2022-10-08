@@ -3,56 +3,36 @@ import numpy as np
 import tensorflow as tf
 
 
-class Word2Vec(tf.keras.Model):
-    """
-    Word2Vec is just another technique to train word embeddings. We are going to use skip gram method, therefore we will
-    train the word embeddings by predicting context from the target word.
-    """
-    def __init__(self, vocab_size, embedding_dim, num_ns):
-
-        super(Word2Vec, self).__init__()
-
-        self.target_embedding = tf.keras.layers.Embedding(vocab_size,
-                                                          embedding_dim,
-                                                          input_length=1,
-                                                          name="w2v_embedding")
-
-        self.context_embedding = tf.keras.layers.Embedding(vocab_size,
-                                                           embedding_dim,
-                                                           input_length=num_ns+1)
-
-    def call(self, pair):
-
-        target, context = pair
-
-        if len(target.shape) == 2:
-
-            target = tf.squeeze(target, axis=1)
-
-        word_emb = self.target_embedding(target)
-
-        context_emb = self.context_embedding(context)
-
-        dots = tf.einsum('be,bce->bc', word_emb, context_emb)
-
-        return dots
-
-
 class BagOfWords(tf.keras.Model):
     """
-    Bag-of-words representation for the document(for us song). This representation return the number of each word in a
-    certain document. In other words, it is a statistical approach to similarity, therefore it has no information on the
-    position of the words or their context.
+    Bag-of-words representation for the document(for us document is a song). This representation return the number of
+    each word in a certain document. In other words, it is a statistical approach to similarity, therefore it has no
+    information on the position of the words or their context.
     """
     def __init__(self):
 
-        self.tokenizer = tf.keras.preprocessing.text.Tokenizer()
+        super().__init__()
 
-    def call(self, doc):
+        self.bowList = []
 
-        self.tokenizer.fit_on_texts(doc)
+    def call(self, docList):
 
-        return list(self.tokenizer.word_index.keys()), self.tokenizer.texts_to_matrix(doc, mode="count")
+        for doc in docList:
+
+            # Remove punctuation
+            doc = doc.translate(str.maketrans("", "", string.punctuation))
+
+            docDict = dict.fromkeys(doc, 0)
+
+            words = doc.split()
+
+            for word in words:
+
+                docDict[word] += 1
+
+            self.bowList.append(docDict)
+
+        return self.bowList
 
 
 class TfIdf(tf.keras.Model):
@@ -143,6 +123,39 @@ class TfIdf(tf.keras.Model):
         return self.final_doc_dict(final_doc_list)
 
 
+class Word2Vec(tf.keras.Model):
+    """
+    Word2Vec is just another technique to train word embeddings. We are going to use skip gram method, therefore we will
+    train the word embeddings by predicting context from the target word.
+    """
+    def __init__(self, vocab_size, embedding_dim, num_ns):
+
+        super(Word2Vec, self).__init__()
+
+        self.target_embedding = tf.keras.layers.Embedding(vocab_size,
+                                                          embedding_dim,
+                                                          input_length=1,
+                                                          name="w2v_embedding")
+
+        self.context_embedding = tf.keras.layers.Embedding(vocab_size,
+                                                           embedding_dim,
+                                                           input_length=num_ns+1)
+
+    def call(self, pair):
+
+        target, context = pair
+
+        if len(target.shape) == 2:
+
+            target = tf.squeeze(target, axis=1)
+
+        word_emb = self.target_embedding(target)
+
+        context_emb = self.context_embedding(context)
+
+        dots = tf.einsum('be,bce->bc', word_emb, context_emb)
+
+        return dots
 
 
 
