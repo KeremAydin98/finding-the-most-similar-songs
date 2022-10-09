@@ -1,7 +1,7 @@
 import pandas as pd
-import io
 import models, config
 import numpy as np
+from training import song_embeddings
 
 """
 Read the trained data
@@ -16,6 +16,7 @@ df_tfidf = pd.read_pickle("./Models/tf_idf.pkl")
 # Word2Vec
 vectors = pd.read_csv('./Models/vectors.tsv', sep='\t')
 vocab = pd.read_csv('./Models/metadata.tsv', sep='\t')
+df_embed = pd.read_pickle("./Models/word2vec.pkl")
 
 """
 Set the input
@@ -89,7 +90,23 @@ print(f"Closest Songs:\n{df['SName'].iloc[distances[0][1]]}\n"
 print("-------------------------------")
 
 # Word2Vec
+input_embed = song_embeddings(input_Lyric)
 
+distances = []
+for i in range(len(df_tfidf)):
 
+    distance = cosine_distance(input_embed, df_embed.iloc[i])
+    distance = distance, i
+    distances.append(distance)
+
+distances.sort()
+
+print("Tf-idf:")
+print(f"Closest Songs:\n{df['SName'].iloc[distances[0][1]]}\n"
+      f"{df['SName'].iloc[distances[1][1]]}\n"
+      f"{df['SName'].iloc[distances[2][1]]}\n"
+      f"{df['SName'].iloc[distances[3][1]]}\n"
+      f"{df['SName'].iloc[distances[4][1]]}")
+print("-------------------------------")
 
 

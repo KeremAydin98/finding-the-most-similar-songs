@@ -72,6 +72,28 @@ weights = word2vec.get_layer('w2v_embedding').get_weights()[0]
 vocab = preprocessing.vectorize_layer.get_vocabulary()
 
 
+def song_embeddings(song):
+
+    song = song.split()
+    all_embeds = []
+
+    for word in song:
+
+        index = vocab.find(word)
+
+        if index != -1:
+
+            all_embeds.append(weights[index])
+
+        else:
+
+            all_embeds.append(weights[0])
+
+    return sum(all_embeds) / len(all_embeds)
+
+
+df["Lyric"] = df["Lyric"].apply(song_embeddings)
+df.to_pickle("./Models/word2vec.pkl")
 
 out_v = io.open('./Models/vectors.tsv', 'w', encoding='utf-8')
 out_m = io.open('./Models/metadata.tsv', 'w', encoding='utf-8')
