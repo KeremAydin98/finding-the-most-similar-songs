@@ -22,3 +22,9 @@ BATCH_SIZE = 32
 BUFFER_SIZE = 10000
 
 EMBEDDING_SIZE = 128
+
+"""
+Inputs
+"""
+
+input_song_id = 50

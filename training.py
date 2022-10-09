@@ -15,29 +15,29 @@ df = df_all.loc[:, df_all.columns.intersection(['Lyric','SName','language'])]
 df = df[df["language"] == "en"]
 df = df.drop("language", axis=1)
 
+doc_list = list(df["Lyric"])
+
 """
 1. Bag of words
 """
 
 bow = models.BagOfWords()
 
-songs_bow = []
+bowList = bow(doc_list)
 
-for i in range(len(df)):
+df_bow = pd.DataFrame(bowList)
 
-    keys, vectors = bow(df["Lyric"][i])
-
-    songs_bow.append((keys,vectors))
+df_bow.to_pickle("./Models/bow.pkl")
 
 """
 2. Tf-idf
 """
 
-doc_list = list(df["Lyric"])
-
 tf_idf = models.TfIdf()
 
 df_tfidf = pd.DataFrame(tf_idf(doc_list))
+
+df_tfidf.to_pickle("./Models/tf_idf.pkl")
 
 """
 3. Word2Vec
@@ -71,8 +71,10 @@ word2vec.fit(dataset, epochs=20)
 weights = word2vec.get_layer('w2v_embedding').get_weights()[0]
 vocab = preprocessing.vectorize_layer.get_vocabulary()
 
-out_v = io.open('vectors.tsv', 'w', encoding='utf-8')
-out_m = io.open('metadata.tsv', 'w', encoding='utf-8')
+
+
+out_v = io.open('./Models/vectors.tsv', 'w', encoding='utf-8')
+out_m = io.open('./Models/metadata.tsv', 'w', encoding='utf-8')
 
 for index, word in enumerate(vocab):
   if index == 0:

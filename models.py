@@ -1,6 +1,8 @@
 import string
 import numpy as np
 import tensorflow as tf
+import tqdm
+from nltk.corpus import stopwords
 
 
 class BagOfWords(tf.keras.Model):
@@ -9,6 +11,7 @@ class BagOfWords(tf.keras.Model):
     each word in a certain document. In other words, it is a statistical approach to similarity, therefore it has no
     information on the position of the words or their context.
     """
+
     def __init__(self):
 
         super().__init__()
@@ -17,20 +20,26 @@ class BagOfWords(tf.keras.Model):
 
     def call(self, docList):
 
-        for doc in docList:
+        for doc in tqdm.tqdm(docList):
 
             # Remove punctuation
             doc = doc.translate(str.maketrans("", "", string.punctuation))
 
-            docDict = dict.fromkeys(doc, 0)
-
             words = doc.split()
 
+            # Removing stop words
+            stop_words = set(stopwords.words('english'))
+
+            words = [w for w in words if not w.lower() in stop_words]
+
+            # Start the dictionary with the words of the doc
+            wordDict = dict.fromkeys(words, 0)
+
+            # Count the number of words
             for word in words:
+                wordDict[word] += 1
 
-                docDict[word] += 1
-
-            self.bowList.append(docDict)
+            self.bowList.append(wordDict)
 
         return self.bowList
 
@@ -62,13 +71,17 @@ class TfIdf(tf.keras.Model):
 
         """
 
-        for doc in docList:
+        for doc in tqdm.tqdm(docList):
 
             # Remove punctuation
             doc = doc.translate(str.maketrans("", "", string.punctuation))
 
             # Split on whitespaces
             s_doc = doc.split()
+
+            stop_words = set(stopwords.words('english'))
+
+            s_doc = [w for w in s_doc if not w.lower() in stop_words]
 
             # Form a dictionary with the words in the document
             s_dict = dict.fromkeys(s_doc, 0)
@@ -153,6 +166,7 @@ class Word2Vec(tf.keras.Model):
 
         context_emb = self.context_embedding(context)
 
+        # output[b,c] = sum_c word_emb[b,e] * context_emb[b,c,e]
         dots = tf.einsum('be,bce->bc', word_emb, context_emb)
 
         return dots
