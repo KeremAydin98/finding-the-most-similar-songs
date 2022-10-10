@@ -15,3 +15,7 @@ Tf-idf can be considered as the improved version of the bag-of-words method. Tf-
 Word2Vec is the real model of the project since it actually creates some kind of representation for the semantics of a word. Word2Vec uses word embeddings which are basically vectors. The key idea of the Word2Vec is to figure out the word's meaning from the neighboring words. This is actually what people do when they do not understand a single word in a sentence. We try to figure out the meaning of the word by examining the context. There are two ways to create a train set for the word2vec algorithm: skip-gram and a continuous bag of words. I have used skip-gram which makes the model predict the context words from the target word unlike the continuous bag of words method which makes the model predict the target word from the context words. In this way, I have trained word embedding for the words that are inside the song lyrics. Then I replaced the words with their word embeddings and created embedding for the song by averaging its words' embedding vectors.
 
 In these ways, I represented the songs and found the closest songs by calculating the distance with the cosine similarity method.
+
+I have downloaded the song lyrics data set from Kaggle and trimeed it to only get the songs in English:
+
+https://www.kaggle.com/datasets/neisse/scrapped-lyrics-from-6-genres
