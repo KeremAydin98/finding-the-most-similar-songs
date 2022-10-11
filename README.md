@@ -16,6 +16,6 @@ Word2Vec is the real model of the project since it actually creates some kind of
 
 In these ways, I represented the songs and found the closest songs by calculating the distance with the cosine similarity method.
 
-I have downloaded the song lyrics data set from Kaggle and trimeed it to only get the songs in English:
+I have downloaded the song lyrics data set from Kaggle and trimmed it to only get the songs in English:
 
 https://www.kaggle.com/datasets/neisse/scrapped-lyrics-from-6-genres
