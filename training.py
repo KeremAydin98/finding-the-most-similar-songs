@@ -5,74 +5,93 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 
-# Reading the data
-df_all = pd.read_csv(config.lyric_data_path)
 
-# Drop all the columns except Lyrics and Song Name
-df = df_all.loc[:, df_all.columns.intersection(['Lyric','SName','language'])]
+def train_df(doc_list, representation="word2vec"):
 
-# Filter only English songs
-df = df[df["language"] == "en"]
-df = df.drop("language", axis=1)
+    if representation == "bag_of_words":
 
-doc_list = list(df["Lyric"])
+        """
+        1. Bag of words
+        """
 
-"""
-1. Bag of words
-"""
+        bow = models.BagOfWords()
 
-bow = models.BagOfWords()
+        bowList = bow(doc_list)
 
-bowList = bow(doc_list)
+        df_bow = pd.DataFrame(bowList)
 
-df_bow = pd.DataFrame(bowList)
+        df_bow.to_pickle("./Models/bow.pkl")
 
-df_bow.to_pickle("./Models/bow.pkl")
+        return df_bow
 
-"""
-2. Tf-idf
-"""
+    elif representation == "tf_idf":
 
-tf_idf = models.TfIdf()
+        """
+        2. Tf-idf
+        """
 
-df_tfidf = pd.DataFrame(tf_idf(doc_list))
+        tf_idf = models.TfIdf()
 
-df_tfidf.to_pickle("./Models/tf_idf.pkl")
+        df_tfidf = pd.DataFrame(tf_idf(doc_list))
 
-"""
-3. Word2Vec
-"""
+        df_tfidf.to_pickle("./Models/tfidf.pkl")
 
-preprocessing = Preprocessing(df, config.lyric_text_path, config.vocab_size, config.sequence_length)
+        return df_tfidf
 
-# Generating training data
-targets, contexts, labels = preprocessing.generating_training_data(sequences=preprocessing.sequences,
-                                                                 window_size=config.window_size,
-                                                                 num_ns=config.num_ns,
-                                                                 vocab_size=config.vocab_size)
+    else:
 
-targets = np.array(targets)
-contexts = np.array(contexts)[:,:,0]
-labels = np.array(labels)
+        """
+        3. Word2Vec
+        """
 
-dataset = tf.data.Dataset.from_tensor_slices((targets, contexts), labels)
-dataset = dataset.shuffle(config.BUFFER_SIZE).batch(config.BATCH_SIZE,drop_remainder=True)
-dataset = dataset.cache().prefetch(tf.data.AUTOTUNE)
+        preprocessing = Preprocessing(df, config.lyric_text_path, config.vocab_size, config.sequence_length)
 
-# Initialize word2vec model
-word2vec = models.Word2Vec(config.vocab_size, config.EMBEDDING_SIZE)
+        # Generating training data
+        targets, contexts, labels = preprocessing.generating_training_data(sequences=preprocessing.sequences,
+                                                                         window_size=config.window_size,
+                                                                         num_ns=config.num_ns,
+                                                                         vocab_size=config.vocab_size)
 
-word2vec.compile(optimizer=tf.keras.optimizers.Adam(),
-                 loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-                 metrics=["accuracy"])
+        targets = np.array(targets)
+        contexts = np.array(contexts)[:,:,0]
+        labels = np.array(labels)
 
-word2vec.fit(dataset, epochs=20)
+        dataset = tf.data.Dataset.from_tensor_slices((targets, contexts), labels)
+        dataset = dataset.shuffle(config.BUFFER_SIZE).batch(config.BATCH_SIZE,drop_remainder=True)
+        dataset = dataset.cache().prefetch(tf.data.AUTOTUNE)
 
-weights = word2vec.get_layer('w2v_embedding').get_weights()[0]
-vocab = preprocessing.vectorize_layer.get_vocabulary()
+        # Initialize word2vec model
+        word2vec = models.Word2Vec(config.vocab_size, config.EMBEDDING_SIZE)
+
+        word2vec.compile(optimizer=tf.keras.optimizers.Adam(),
+                         loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+                         metrics=["accuracy"])
+
+        word2vec.fit(dataset, epochs=20)
+
+        weights = word2vec.get_layer('w2v_embedding').get_weights()[0]
+        vocab = preprocessing.vectorize_layer.get_vocabulary()
+
+        df["Lyric"] = df["Lyric"].apply(song_embeddings, args=(vocab, weights))
+        df.to_pickle("./Models/word2vec.pkl")
+
+        out_v = io.open('./Models/vectors.tsv', 'w', encoding='utf-8')
+        out_m = io.open('./Models/metadata.tsv', 'w', encoding='utf-8')
+
+        for index, word in enumerate(vocab):
+            if index == 0:
+                continue  # skip 0, it's padding.
+            vec = weights[index]
+            out_v.write('\t'.join([str(x) for x in vec]) + "\n")
+            out_m.write(word + "\n")
+
+        out_v.close()
+        out_m.close()
+
+        return df
 
 
-def song_embeddings(song):
+def song_embeddings(song, vocab, weights):
 
     song = song.split()
     all_embeds = []
@@ -92,19 +111,19 @@ def song_embeddings(song):
     return sum(all_embeds) / len(all_embeds)
 
 
-df["Lyric"] = df["Lyric"].apply(song_embeddings)
-df.to_pickle("./Models/word2vec.pkl")
+# Reading the data
+df_all = pd.read_csv(config.lyric_data_path)
 
-out_v = io.open('./Models/vectors.tsv', 'w', encoding='utf-8')
-out_m = io.open('./Models/metadata.tsv', 'w', encoding='utf-8')
+# Drop all the columns except Lyrics and Song Name
+df = df_all.loc[:, df_all.columns.intersection(['Lyric','SName','language'])]
 
-for index, word in enumerate(vocab):
-  if index == 0:
-    continue  # skip 0, it's padding.
-  vec = weights[index]
-  out_v.write('\t'.join([str(x) for x in vec]) + "\n")
-  out_m.write(word + "\n")
+# Filter only English songs
+df = df[df["language"] == "en"]
+df = df.drop("language", axis=1)
 
-out_v.close()
-out_m.close()
+doc_list = list(df["Lyric"])
+
+df_trained = train_df(doc_list)
+
+
 
