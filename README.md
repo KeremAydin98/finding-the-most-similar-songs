@@ -1,10 +1,4 @@
-# semantic-shazam
-
-Normally the app Shazam uses syntactic data on figuring out which song is playing. While I was working on text representations, I wondered if I could build a model that could find out the closest songs to the input song in terms of semantics. In other words, the model finds the closest songs which have lyrics with the most similar meaning. That's why I called this project "Semantic Shazam".
-
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/77073029/194806554-280ccb9f-af95-4323-8285-d1454840bed1.png" />
-</p>
+# finding-the-most-similar-songs
 
 There are three models which are getting more complex in order: bag-of-words, tf-idf, and word2vec. All three have been developed from scratch. 
 
