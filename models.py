@@ -12,9 +12,40 @@ class BagOfWords(tf.keras.Model):
     information on the position of the words or their context.
     """
 
-    def __init__(self):
+    def __init__(self, text, num_words=1000):
 
         super().__init__()
+
+        text = text.translate(str.maketrans("", "", string.punctuation))
+
+        text = text.replace("\n", " ")
+
+        text = text.lower()
+
+        wordList = text.split()
+
+        stop_words = set(stopwords.words('english'))
+
+        words = [w for w in wordList if not w in stop_words]
+
+        stemmer = PorterStemmer()
+
+        words = [stemmer.stem(word) for word in words]
+
+        sample_words = []
+
+        i = 0
+        while (i < num_words):
+
+            sample_word = random.choice(words)
+
+            if sample_word in sample_words:
+                continue
+
+            sample_words.append(sample_word)
+            i += 1
+
+        self.wordDict = dict.fromkeys(sample_words, 0)
 
         self.bowList = []
 
@@ -22,20 +53,17 @@ class BagOfWords(tf.keras.Model):
 
         for doc in tqdm.tqdm(docList):
 
-            # Remove punctuation
-            doc = doc.translate(str.maketrans("", "", string.punctuation))
+            doc = doc.lower()
 
             words = doc.split()
 
-            # Removing stop words
-            stop_words = set(stopwords.words('english'))
+            stemmer = PorterStemmer()
+            words = [stemmer.stem(word) for word in words]
 
-            words = [w for w in words if not w.lower() in stop_words]
+            words = [word for word in words if word in self.wordDict.keys()]
 
-            # Start the dictionary with the words of the doc
-            wordDict = dict.fromkeys(words, 0)
+            wordDict = self.wordDict.copy()
 
-            # Count the number of words
             for word in words:
                 wordDict[word] += 1
 

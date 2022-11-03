@@ -14,7 +14,13 @@ def train_df(doc_list, representation="word2vec"):
         1. Bag of words
         """
 
-        bow = models.BagOfWords()
+        with open("/Data/all_lyrics.txt", "r") as f:
+
+            text = f.read()
+
+        doc_list = list(df["Lyric"])
+
+        bow = models.BagOfWords(text)
 
         bowList = bow(doc_list)
 
